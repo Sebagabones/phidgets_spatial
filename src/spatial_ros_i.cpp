@@ -181,6 +181,7 @@ SpatialRosI::SpatialRosI(const rclcpp::NodeOptions &options)
   this->declare_parameter("cc_t3", rclcpp::PARAMETER_DOUBLE);
   this->declare_parameter("cc_t4", rclcpp::PARAMETER_DOUBLE);
   this->declare_parameter("cc_t5", rclcpp::PARAMETER_DOUBLE);
+  this->declare_parameter("topic_prefix", "imu");
 
   bool has_compass_params = false;
   double cc_mag_field = 0.0;
@@ -212,8 +213,11 @@ SpatialRosI::SpatialRosI(const rclcpp::NodeOptions &options)
     cc_T4 = this->get_parameter("cc_t4").get_value<double>();
     cc_T5 = this->get_parameter("cc_t5").get_value<double>();
     has_compass_params = true;
+
   } catch (const rclcpp::exceptions::ParameterUninitializedException &) {
   }
+
+  std::string topic_prefix = this->get_parameter("topic_prefix").as_string();
 
   RCLCPP_INFO(get_logger(),
               "Connecting to Phidgets Spatial serial %d, hub port %d ...",
@@ -251,14 +255,8 @@ SpatialRosI::SpatialRosI(const rclcpp::NodeOptions &options)
 
     spatial_->setDataInterval(data_interval_ms);
 
-    std::string topic_prefix_ = this->declare_parameter(
-        "topic_prefix", rclcpp::ParameterType::PARAMETER_STRING);
-    if (topic_prefix_ == "") {
-      topic_prefix_ = "imu";
-    }
-
     cal_publisher_ = this->create_publisher<std_msgs::msg::Bool>(
-        flossy::format("{}/is_calibrated", topic_prefix_),
+        flossy::format("{}/is_calibrated", topic_prefix),
         rclcpp::SystemDefaultsQoS().transient_local());
 
     calibrate();
@@ -294,15 +292,15 @@ SpatialRosI::SpatialRosI(const rclcpp::NodeOptions &options)
   }
 
   imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>(
-      flossy::format("{}/data_raw", topic_prefix_), 1);
+      flossy::format("{}/data_raw", topic_prefix), 1);
 
   cal_srv_ = this->create_service<std_srvs::srv::Empty>(
-      flossy::format("{}/calibrate", topic_prefix_),
+      flossy::format("{}/calibrate", topic_prefix),
       std::bind(&SpatialRosI::calibrateService, this, std::placeholders::_1,
                 std::placeholders::_2));
 
   magnetic_field_pub_ = this->create_publisher<sensor_msgs::msg::MagneticField>(
-      flossy::format("{}/mag", topic_prefix_), 1);
+      flossy::format("{}/mag", topic_prefix), 1);
 
   if (publish_rate_ > 0.0) {
     double pub_msec = 1000.0 / publish_rate_;
