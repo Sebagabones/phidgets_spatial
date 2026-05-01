@@ -610,6 +610,7 @@ private:
   int count_;
   std::mutex spatial_mutex_;
   std::unique_ptr<Spatial> spatial_;
+  std::unique_ptr<Temperature> temp_;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr cal_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Temperature>::SharedPtr temp_pub_;
