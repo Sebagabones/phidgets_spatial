@@ -43,6 +43,7 @@
 
 #include "flossy.hpp"
 #include "phidgets_api/spatial.hpp"
+#include "phidgets_api/temperature.hpp"
 #include "phidgets_spatial/spatial_ros_i.hpp"
 
 namespace phidgets {
@@ -259,7 +260,15 @@ public:
           algorithm_data_handler,
           std::bind(&PhidgetsSpatial::attachCallback, this),
           std::bind(&PhidgetsSpatial::detachCallback, this));
-
+      if (heating_enabled) {
+        temp_ = std::make_unique<Temperature>(
+            serial_num, hub_port, false,
+            std::bind(&PhidgetsSpatial::temperatureChangeCallback, this,
+                      std::placeholders::_1),
+            algorithm_data_handler,
+            std::bind(&PhidgetsSpatial::attachCallback, this),
+            std::bind(&PhidgetsSpatial::detachCallback, this));
+      }
       RCLCPP_INFO(get_logger(), "Connected to serial %d",
                   spatial_->getSerialNumber());
 
@@ -294,8 +303,11 @@ public:
       }
 
       if (heating_enabled) {
+        last_temp_ = 0.0;
         RCLCPP_INFO(get_logger(), "IMU has started heating up");
         spatial_->setHeatingEnabled(heating_enabled);
+        temp_pub_ = this->create_publisher<sensor_msgs::msg::Temperature>(
+            flossy::format("{}/temperature", topic_prefix), 1);
       }
 
     } catch (const Phidget22Error &err) {
@@ -355,6 +367,13 @@ private:
   void publishLatest() {
     auto msg = std::make_unique<sensor_msgs::msg::Imu>();
     auto mag_msg = std::make_unique<sensor_msgs::msg::MagneticField>();
+    auto temp_msg = std::make_unique<sensor_msgs::msg::Temperature>();
+
+    // get temp data
+    temp_msg->header.frame_id = frame_id_;
+    temp_msg->last_temp_;
+    temp_msg->variance = 0;
+    temp_pub_->publish(std::move(temp_msg));
 
     // build covariance matrices
     for (int i = 0; i < 3; ++i) {
@@ -563,7 +582,9 @@ private:
     last_quat_y_ = quaternion[1];
     last_quat_z_ = quaternion[2];
   }
-
+  void temperatureChangeCallback(double temperature) {
+    last_temp_ = temperature;
+  }
   void attachCallback() {
     RCLCPP_INFO(get_logger(), "Phidget Spatial attached.");
 
@@ -586,7 +607,7 @@ private:
   int count_;
   std::mutex spatial_mutex_;
   std::unique_ptr<Spatial> spatial_;
-
+  rclcpp::Publisher<sensor_msgs::msg::Temperature>::SharedPtr temp_pub_;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr cal_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
   rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr
@@ -614,12 +635,22 @@ private:
   rclcpp::Time ros_time_zero_{0, 0, RCL_ROS_TIME};
   rclcpp::Time last_cb_time_{0, 0, RCL_ROS_TIME};
 
-  double last_quat_w_{0.0}, last_quat_x_{0.0}, last_quat_y_{0.0},
-      last_quat_z_{0.0};
-  double last_accel_x_{0.0}, last_accel_y_{0.0}, last_accel_z_{0.0};
-  double last_gyro_x_{0.0}, last_gyro_y_{0.0}, last_gyro_z_{0.0};
-  double last_mag_x_{0.0}, last_mag_y_{0.0}, last_mag_z_{0.0};
+  double last_quat_w_{0.0};
+  double last_quat_x_{0.0};
+  double last_quat_y_{0.0};
+  double last_quat_z_{0.0};
+  double last_accel_x_{0.0};
+  double last_accel_y_{0.0};
+  double last_accel_z_{0.0};
 
+  double last_gyro_x_{0.0};
+  double last_gyro_y_{0.0};
+  double last_gyro_z_{0.0};
+  double last_mag_x_{0.0};
+  double last_mag_y_{0.0};
+  double last_mag_z_{0.0};
+
+  double last_temp_{0.0};
   bool synchronize_timestamps_{true};
   bool can_publish_{false};
 };
