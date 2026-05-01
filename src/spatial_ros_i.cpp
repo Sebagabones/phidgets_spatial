@@ -45,15 +45,6 @@
 #include "phidgets_api/spatial.hpp"
 #include "phidgets_spatial/spatial_ros_i.hpp"
 
-// Fallback constants in case they are not in your headers
-#ifndef G
-#define G 9.80665
-#endif
-
-#ifndef PUNK_DBL
-#define PUNK_DBL 1e300
-#endif
-
 namespace phidgets {
 
 class PhidgetsSpatial : public rclcpp::Node {
