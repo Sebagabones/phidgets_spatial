@@ -1,14 +1,15 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 project(phidgets_spatial)
-
-# Default to C++14
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
+
+# find dependencies
+
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
 
 find_package(ament_cmake_ros REQUIRED)
 find_package(phidgets_api REQUIRED)
@@ -21,7 +22,9 @@ find_package(std_srvs REQUIRED)
 include_directories(include)
 
 add_library(phidgets_spatial SHARED src/spatial_ros_i.cpp)
+
 target_compile_features(phidgets_spatial PUBLIC cxx_std_17)
+
 target_link_libraries(phidgets_spatial PUBLIC
   ${sensor_msgs_TARGETS}
   ${std_msgs_TARGETS}
@@ -32,8 +35,17 @@ target_link_libraries(phidgets_spatial PUBLIC
   sensor_msgs::sensor_msgs_library
 )
 
-rclcpp_components_register_nodes(phidgets_spatial
-  "phidgets::SpatialRosI")
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
 install(TARGETS phidgets_spatial
   ARCHIVE DESTINATION lib
@@ -45,8 +57,22 @@ install(DIRECTORY include/
   DESTINATION include
 )
 
-install(DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
+# install(DIRECTORY launch
+#   DESTINATION share/${PROJECT_NAME}
+# )
+
+
+add_executable(run_phidgets src/spatial_ros_i.cpp)
+target_link_libraries(run_phidgets PUBLIC   ${sensor_msgs_TARGETS}
+  ${std_msgs_TARGETS}
+  ${std_srvs_TARGETS}
+  phidgets_api::phidgets_api
+  rclcpp::rclcpp
+  rclcpp_components::component
+  sensor_msgs::sensor_msgs_library)
+
+install(TARGETS
+  run_phidgets
+  DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

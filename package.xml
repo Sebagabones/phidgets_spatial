@@ -2,7 +2,7 @@
 <package format="2">
   <name>phidgets_spatial</name>
   <version>2.4.0</version>
-  <description>Driver for the Phidgets Spatial 3/3/3 devices</description>
+  <description>Driver for the Phidgets Spatial 3/3/3 devices, ported to not a component system</description>
 
   <maintainer email="martin.guenther@dfki.de">Martin Günther</maintainer>
   <maintainer email="clalancette@openrobotics.org">Chris Lalancette</maintainer>
@@ -19,7 +19,7 @@
 
   <depend>phidgets_api</depend>
   <depend>rclcpp</depend>
-  <depend>rclcpp_components</depend>
+  <!-- <depend>rclcpp_components</depend> -->
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
