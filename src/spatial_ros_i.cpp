@@ -43,7 +43,6 @@
 
 #include "flossy.hpp"
 #include "phidgets_api/spatial.hpp"
-#include "phidgets_api/temperature_sensor.hpp"
 #include "phidgets_spatial/spatial_ros_i.hpp"
 
 namespace phidgets {
