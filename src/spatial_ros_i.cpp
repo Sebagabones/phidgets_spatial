@@ -372,7 +372,7 @@ private:
 
     // get temp data
     temp_msg->header.frame_id = frame_id_;
-    temp_msg->last_temp_;
+    temp_msg->temperature = last_temp_;
     temp_msg->variance = 0;
     temp_pub_->publish(std::move(temp_msg));
 
