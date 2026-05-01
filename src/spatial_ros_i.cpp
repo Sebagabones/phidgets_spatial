@@ -264,7 +264,7 @@ public:
       if (heating_enabled) {
         temp_ = std::make_unique<Temperature>(
             serial_num, hub_port, false,
-            std::bind(&TemperatureRosI::temperatureChangeCallback, this,
+            std::bind(&PhidgetsSpatial::temperatureChangeCallback, this,
                       std::placeholders::_1));
 
         RCLCPP_INFO(get_logger(), "Connected to serial %d",
