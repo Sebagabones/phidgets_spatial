@@ -35,6 +35,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
+#include <sensor_msgs/msg/temperature.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <stdexcept>
@@ -582,9 +583,11 @@ private:
     last_quat_y_ = quaternion[1];
     last_quat_z_ = quaternion[2];
   }
+
   void temperatureChangeCallback(double temperature) {
     last_temp_ = temperature;
   }
+
   void attachCallback() {
     RCLCPP_INFO(get_logger(), "Phidget Spatial attached.");
 
@@ -607,9 +610,9 @@ private:
   int count_;
   std::mutex spatial_mutex_;
   std::unique_ptr<Spatial> spatial_;
-  rclcpp::Publisher<sensor_msgs::msg::Temperature>::SharedPtr temp_pub_;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr cal_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Temperature>::SharedPtr temp_pub_;
   rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr
       magnetic_field_pub_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr cal_srv_;
